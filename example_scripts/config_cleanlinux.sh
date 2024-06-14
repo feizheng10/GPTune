@@ -139,8 +139,8 @@ export PATH=$GPTUNEROOT/cmake-$version.$build/bin/:$PATH
 
 if [[ $PYTHONFromSource = 1 ]]; then
 	PyMAJOR=3
-	PyMINOR=9
-	PyPATCH=17
+	PyMINOR=10
+	PyPATCH=12
 	cd $GPTUNEROOT
 	rm -rf Python-$PyMAJOR.$PyMINOR.$PyPATCH
 	wget https://www.python.org/ftp/python/$PyMAJOR.$PyMINOR.$PyPATCH/Python-$PyMAJOR.$PyMINOR.$PyPATCH.tgz

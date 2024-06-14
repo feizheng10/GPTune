@@ -4,10 +4,10 @@ cd ../../
 cd -
 
 
-cd $GPTUNEROOT/examples/GPTune-Demo
+cd $GPTUNEROOT/examples/rocFFT
 python --version
 
-tp=GPTune-Demo
+tp=rocFFT-kernel-tuning
 app_json=$(echo "{\"tuning_problem_name\":\"$tp\"")
 echo "$app_json$machine_json$software_json$loadable_machine_json$loadable_software_json}" | jq '.' > .gptune/meta.json
 
@@ -17,7 +17,7 @@ echo "$app_json$machine_json$software_json$loadable_machine_json$loadable_softwa
 tuner=GPTune
 rm -rf gptune.db/*.json # do not load any database
 #$RUN
-python ./demo.py -optimization ${tuner} -ntask 2 -nrun 20
+python ./rocFFT_kernel_tuning.py -optimization ${tuner}
 ###########################################################################################
 
 ## ###########################################################################################

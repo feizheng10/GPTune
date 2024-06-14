@@ -44,19 +44,19 @@
 # export nodes=1  # number of nodes to be used
 
 # ################ Yang's tr4 machine
-export machine=tr4-workstation
- export proc=AMD1950X   
- export mpi=openmpi  
- export compiler=gnu   
- export nodes=1  # number of nodes to be used
+#export machine=tr4-workstation
+# export proc=AMD1950X   
+# export mpi=openmpi  
+# export compiler=gnu   
+# export nodes=1  # number of nodes to be used
 # #
 
 # ################ Any ubuntu/debian machine that has used config_cleanlinux.sh to build GPTune
-# export machine=cleanlinux
-# export proc=unknown
-# export mpi=openmpi
-# export compiler=gnu
-# export nodes=1  # number of nodes to be used
+export machine=cleanlinux
+export proc=unknown
+export mpi=openmpi
+export compiler=gnu
+export nodes=1  # number of nodes to be used
 
 
 # # ################ ex3 simula
