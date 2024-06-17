@@ -1,12 +1,7 @@
 #! /usr/bin/env python3
 
 """
-Example of invocation of this script:
-python heffte_RCI.py -npernode 1 -nrun 80
 
-where:
-	-npernode is the number of MPIs (in linear scale) per node for launching the application code
-    -nrun is the number of calls per task
 """
 
 ################################################################################
@@ -71,21 +66,20 @@ def main():
 	length = Integer(64, 128, base=64, name="length")
 
 	# Input/tuning parameters
-	factorization = Categorical()
 	wgs = Integer(64, 256, base=64,name="wgs")
 	tpt = Integer(64, 256, base=64,name="tpt")
 	half_lds = Integer(0, 1, base=1,name="half_lds")
 	direct_reg = Integer(0, 1, base=1,name="direct_reg")
-
+	# Todo: factorization = Categorical()
 
 	# Tuning Objective
 	time   = Real(float("-Inf") , float("Inf"), name="time")
 
 	IS = Space([length])
-	PS = Space([factorization, wgs, tpt, half_lds, direct_reg])
+	PS = Space([wgs, tpt, half_lds, direct_reg])
 	OS = Space([time])
 
-	constraints = {"cst1" : cst1}
+	constraints = {}
 	models = {}
 	constants={"nodes":nodes,"cores":cores,"npernode":npernode}
 
@@ -118,7 +112,7 @@ def main():
 	
 	options.validate(computer = computer)
 
-	giventask = [[128, 64, 128]]
+	giventask = [[64]]
 	data = Data(problem)
 
 
@@ -138,7 +132,7 @@ def main():
 		""" Print all input and parameter samples """
 		for tid in range(NI):
 			print("tid: %d"%(tid))
-			print("    Transform sizes:%s %s %s"%(data.I[tid][0],data.I[tid][1],data.I[tid][2]))
+			print("    Transform sizes:%s"%(data.I[tid][0]))
 			print("    Ps ", data.P[tid])
 			print("    Os ", data.O[tid].tolist())
 			print('    Popt ', data.P[tid][np.argmin(data.O[tid])], 'Oopt ', min(data.O[tid])[0], 'nth ', np.argmin(data.O[tid]))
