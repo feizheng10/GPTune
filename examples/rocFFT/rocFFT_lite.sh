@@ -56,7 +56,7 @@ fi
 # if so, call the application code
 while [ ! $idx = null ]; 
 do 
-echo " $idx"    # idx indexes the record that has null objective function values
+echo "idx $idx"    # idx indexes the record that has null objective function values
 # write a large value to the database. This becomes useful in case the application crashes. 
 bigval=1e30
 jq --arg v0 $obj --argjson v1 $idx --argjson v2 $bigval '.func_eval[$v1].evaluation_result[$v0]=$v2' $database > tmp.json && mv tmp.json $database
@@ -65,6 +65,8 @@ declare -a input_para=($( jq -r --argjson v1 $idx '.func_eval[$v1].task_paramete
 declare -a tuning_para=($( jq -r --argjson v1 $idx '.func_eval[$v1].tuning_parameter' $database | jq -r '.[]'))
 
 
+# echo "input_para ${input_para[*]}"
+# echo "tuning_para ${tuning_para[*]}"
 
 #############################################################################
 #############################################################################
@@ -83,17 +85,19 @@ direct_reg=${tuning_para[3]}
 # call the application
 export OMP_NUM_THREADS=$(($cores / $npernode))
 
-RUN_BIN="./library/src/rocfft_config_search"
+RUN_BIN="./rocfft_config_search"
 
-echo "$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg 1 | tee kernel.log"
-$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg 1 | tee kernel.log
+echo "$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg 1 | tee rocfft_kernel.log"
+$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg 1 | tee rocfft_kernel.log
 
 # get the result (for this example: search the runlog)
-result=$(grep 'Time per run' kernel.log | grep -Eo '[+-]?[0-9]+([.][0-9]+)?')
+result=$(grep ', ' kernel.log | sed 's/.*, //')
 
 # write the data back to the database file
 jq --arg v0 $obj --argjson v1 $idx --argjson v2 $result '.func_eval[$v1].evaluation_result[$v0]=$v2' $database > tmp.json && mv tmp.json $database
 idx=$( jq -r --arg v0 $obj '.func_eval | map(.evaluation_result[$v0] == null) | index(true) ' $database )
+
+#echo "--- end loop $idx"
 
 #############################################################################
 #############################################################################
