@@ -31,26 +31,13 @@ import math
 def objectives(point):
 	return min(point)
 
-def cst1(px_i,py_i,px_o,py_o,nodes,npernode):
-	pz_i_linear = int(nodes*npernode/2**(px_i+py_i))
-	pz_o_linear = int(nodes*npernode/2**(px_o+py_o))
-	px_i_linear = 2**(px_i)
-	py_i_linear = 2**(py_i)
-	px_o_linear = 2**(px_o)
-	py_o_linear = 2**(py_o)
-	# the first condition is input grid doesn't oversubscribe the nodes
-	# the second condition is output grid doesn't oversubscribe the nodes
-	# the third condition is input and output grids should have the same total MPI counts
-	return pz_i_linear>0 and pz_o_linear>0 and px_i_linear*py_i_linear*pz_i_linear == px_o_linear*py_o_linear*pz_o_linear
-
 def main():
 
 	# Parse command line arguments
 
-	# args   = parse_args()
+	args   = parse_args()
 
 	# Extract arguments
-	npernode = 1 # args.npernode
 	nrun = 1 # args.nrun
 	TUNER_NAME = 'GPTune' # 'GPTuneHybrid'
 	(machine, processor, nodes, cores) = GetMachineConfiguration()
@@ -81,7 +68,7 @@ def main():
 
 	constraints = {}
 	models = {}
-	constants={"nodes":nodes,"cores":cores,"npernode":npernode}
+	constants={"nodes":nodes,"cores":cores}
 
 	""" Print all input and parameter samples """
 	# print(IS, PS, OS, constraints, models)
@@ -137,6 +124,15 @@ def main():
 			print("    Os ", data.O[tid].tolist())
 			print('    Popt ', data.P[tid][np.argmin(data.O[tid])], 'Oopt ', min(data.O[tid])[0], 'nth ', np.argmin(data.O[tid]))
 
+def parse_args():
+
+	parser = argparse.ArgumentParser()
+
+	# Algorithm related arguments
+	parser.add_argument('-nrun', type=int, help='Number of runs per task')
+
+	args   = parser.parse_args()
+	return args
 
 if __name__ == "__main__":
 

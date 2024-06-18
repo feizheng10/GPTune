@@ -43,7 +43,7 @@ while [ $more -eq 1 ]
 do
 
 # call GPTune and ask for the next sample point
-python ./rocFFT_kernel_tuning.py -nrun $nrun -npernode $npernode
+python ./rocFFT_kernel_tuning.py -nrun $nrun
 
 
 # check whether GPTune needs more data
