@@ -74,13 +74,13 @@ declare -a tuning_para=($( jq -r --argjson v1 $idx '.func_eval[$v1].tuning_param
 
 
 # get the task input parameters, the parameters should follow the sequence of definition in the python file
-length=${input_para[0]}
+length=$(( input_para[0]  * 64 ))
 
 # get the tuning parameters, the parameters should follow the sequence of definition in the python file
-wgs=${tuning_para[0]}
-tpt=${tuning_para[1]}
-half_lds=${tuning_para[2]}
-direct_reg=${tuning_para[3]}
+wgs=$((tuning_para[0] * 64))
+tpt=$((tuning_para[1] * 64))
+half_lds=$((tuning_para[2]))
+direct_reg=$((tuning_para[3]))
 
 # call the application
 export OMP_NUM_THREADS=$(($cores / $npernode))

@@ -38,7 +38,7 @@ def main():
 	args   = parse_args()
 
 	# Extract arguments
-	nrun = 1 # args.nrun
+	nrun = args.nrun
 	TUNER_NAME = 'GPTune' # 'GPTuneHybrid'
 	(machine, processor, nodes, cores) = GetMachineConfiguration()
 	print ("machine: " + machine + " processor: " + processor + " num_nodes: " + str(nodes) + " num_cores: " + str(cores))
@@ -50,13 +50,13 @@ def main():
 
 	# Task parameters
 	# Note: kernel_type, length, precision, batch_size are potential task parameters 
-	length = Integer(64, 128, base=64, name="length")
+	length = Integer(1, 2, transform="normalize", name="length")
 
 	# Input/tuning parameters
-	wgs = Integer(64, 256, base=64,name="wgs")
-	tpt = Integer(64, 256, base=64,name="tpt")
-	half_lds = Integer(0, 1, base=1,name="half_lds")
-	direct_reg = Integer(0, 1, base=1,name="direct_reg")
+	wgs = Integer(1, 4, transform="normalize", name="wgs")
+	tpt = Integer(1, 4, transform="normalize", name="tpt")
+	half_lds = Categoricalnorm (['0', '1'], transform="onehot", name="half_lds")
+	direct_reg = Categoricalnorm (['0', '1'], transform="onehot", name="direct_reg")
 	# Todo: factorization = Categorical()
 
 	# Tuning Objective
@@ -99,7 +99,7 @@ def main():
 	
 	options.validate(computer = computer)
 
-	giventask = [[64]]
+	giventask = [[1]] # // for length 64
 	data = Data(problem)
 
 
