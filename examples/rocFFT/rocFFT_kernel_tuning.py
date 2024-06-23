@@ -22,10 +22,50 @@ from gptune import * # import all
 from autotune.problem import *
 from autotune.space import *
 from autotune.search import *
+from itertools import chain, combinations
+from functools import reduce
+from operator import mul
+
 
 # from callopentuner import OpenTuner
 # from callhpbandster import HpBandSter
 import math
+
+
+
+# Function to generate the power set of a given iterable
+def power_set(iterable):
+    s = list(iterable)
+    return list(chain.from_iterable(combinations(s, r) for r in range(len(s) + 1)))
+
+# Function to return the set of supported threads per transform
+def supported_threads_per_transform(factorization):
+    tpts = set()
+    tpt_candidates = power_set(factorization)
+    for tpt in tpt_candidates:
+        if not tpt:
+            continue
+        product = reduce(mul, tpt, 1)
+        tpts.add(product)
+    return tpts
+
+def factorize(length, supported_factors):
+    ret = set()
+    
+    for factor in supported_factors:
+        if length % factor == 0:
+            remain = length // factor
+            if remain == 1:
+                ret.add(tuple([factor]))
+            else:
+                remain_factorization = factorize(remain, supported_factors)
+                for remain_factors in remain_factorization:
+                    factors = [factor]
+                    factors.extend(remain_factors)
+                    factors.sort()
+                    ret.add(tuple(factors))
+    
+    return ret
 
 ################################################################################
 def objectives(point):
@@ -66,7 +106,11 @@ def main():
 	PS = Space([wgs, tpt, half_lds, direct_reg])
 	OS = Space([time])
 
-	constraints = {}
+	# cst1 = " mb * bunit *p <= m "
+	cst2 = "( tpt < wgs )"
+	cst3 = "( not half_lds or direct_reg )"
+	constraints = {" cst2 " : cst2, " cst3 " : cst3 } # constraints for task
+
 	models = {}
 	constants={"nodes":nodes,"cores":cores}
 
@@ -113,7 +157,8 @@ def main():
 
 		NI = len(giventask)
 		NS = nrun
-		(data, model, stats) = gt.SLA(NS=NS, Tgiven=giventask)
+		# (data, model, stats) = gt.SLA(NS=NS, Tgiven=giventask, NS1=max(NS//2, 1))
+		(data, model, stats) = gt.MLA(NS=NS, NI=NI, Tgiven=giventask, NS1=max(NS//2, 1))
 		# print("stats: ", stats)
 
 		""" Print all input and parameter samples """
