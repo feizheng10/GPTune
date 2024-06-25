@@ -11,6 +11,7 @@ import os
 import numpy as np
 import argparse
 import pickle
+from itertools import permutations
 
 # from callhybrid import GPTuneHybrid
 
@@ -31,7 +32,8 @@ from operator import mul
 # from callhpbandster import HpBandSter
 import math
 
-
+# not in use yet
+supported_factors = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 16, 17}
 
 # Function to generate the power set of a given iterable
 def power_set(iterable):
@@ -49,23 +51,35 @@ def supported_threads_per_transform(factorization):
         tpts.add(product)
     return tpts
 
-def factorize(length, supported_factors):
-    ret = set()
+def factorize(n):
+    def factorize_recursive(x, start):
+        result = []
+        for i in range(start, int(x**0.5) + 1):
+            if x % i == 0:
+                sub_result = factorize_recursive(x // i, i)
+                for item in sub_result:
+                    result.append([i] + item)
+                result.append([i, x // i])
+        return result
     
-    for factor in supported_factors:
-        if length % factor == 0:
-            remain = length // factor
-            if remain == 1:
-                ret.add(tuple([factor]))
-            else:
-                remain_factorization = factorize(remain, supported_factors)
-                for remain_factors in remain_factorization:
-                    factors = [factor]
-                    factors.extend(remain_factors)
-                    factors.sort()
-                    ret.add(tuple(factors))
+    # Check if n is a prime number
+    if n > 1 and all(n % i != 0 for i in range(2, int(n**0.5) + 1)):
+        return [[n]]
     
-    return ret
+    factorizations = factorize_recursive(n, 2)
+
+    # Generate all permutations of each factorization
+    all_permutations = set()
+    for factors in factorizations:
+        for perm in permutations(factors):
+            all_permutations.add(perm)
+
+    # Convert permutations to stacked integers
+    stacked_ints = set()
+    for perm in all_permutations:
+        stacked_ints.add(int(''.join(map(str, perm))))
+
+    return sorted(stacked_ints)
 
 ################################################################################
 def objectives(point):
@@ -88,22 +102,26 @@ def main():
 
 	nprocmax = nodes*cores
 
+	all_factorizations = factorize(64)
+	#print("---------------------", all_factorizations)
+
 	# Task parameters
 	# Note: kernel_type, length, precision, batch_size are potential task parameters 
 	length = Integer(1, 2, transform="normalize", name="length")
 
 	# Input/tuning parameters
+
 	wgs = Integer(1, 4, transform="normalize", name="wgs")
 	tpt = Integer(1, 4, transform="normalize", name="tpt")
 	half_lds = Categoricalnorm (['0', '1'], transform="onehot", name="half_lds")
 	direct_reg = Categoricalnorm (['0', '1'], transform="onehot", name="direct_reg")
-	# Todo: factorization = Categorical()
+	factorization = Categorical(all_factorizations, name="factorization")
 
-	# Tuning Objective
+	# Tuning Objective 
 	time   = Real(float("-Inf") , float("Inf"), name="time")
 
 	IS = Space([length])
-	PS = Space([wgs, tpt, half_lds, direct_reg])
+	PS = Space([wgs, tpt, half_lds, direct_reg, factorization])
 	OS = Space([time])
 
 	# cst1 = " mb * bunit *p <= m "
@@ -132,7 +150,7 @@ def main():
 	# options['model_restart_processes'] = 1
 	options['distributed_memory_parallelism'] = False
 	options['shared_memory_parallelism'] = False
-	options['model_class'] = 'Model_GPy_LCM' # 'Model_GPy_LCM'
+	options['model_class'] = 'Model_GPy_LCM'
 	options['verbose'] = False
 	# options['sample_class'] = 'SampleOpenTURNS'
 	# options['search_algo'] = 'dual_annealing' #'maco' #'moead' #'nsga2' #'nspso'
