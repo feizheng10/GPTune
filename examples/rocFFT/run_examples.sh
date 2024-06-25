@@ -14,5 +14,5 @@ timestamp() {
   tp=rocFFT
   app_json=$(echo "{\"tuning_problem_name\":\"$tp\"")
   echo "$app_json$machine_json$software_json$loadable_machine_json$loadable_software_json}" | jq '.' > .gptune/meta.json
-  bash rocFFT_lite.sh -a 10 -b 1 | tee log.rocfft #a: nrun b: npernode (set to number of cores per node to do fully packed MPI for now) 
+  bash rocFFT_lite.sh -a 20 -b 1 | tee log.rocfft #a: nrun b: npernode (set to number of cores per node to do fully packed MPI for now)
   cp gptune.db/${tp}.json  gptune.db/${tp}.json_$(timestamp)  
