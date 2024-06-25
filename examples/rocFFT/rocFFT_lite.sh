@@ -74,7 +74,7 @@ declare -a tuning_para=($( jq -r --argjson v1 $idx '.func_eval[$v1].tuning_param
 
 
 # get the task input parameters, the parameters should follow the sequence of definition in the python file
-length=$(( input_para[0] * 64 ))
+length=$(( input_para[0]))
 
 # get the tuning parameters, the parameters should follow the sequence of definition in the python file
 wgs=$((tuning_para[0] * 64))
