@@ -51,6 +51,7 @@ def supported_threads_per_transform(factorization):
         tpts.add(product)
     return tpts
 
+# Generate all permutations of each factorization of n
 def factorize(n):
     def factorize_recursive(x, start):
         result = []
@@ -74,10 +75,11 @@ def factorize(n):
         for perm in permutations(factors):
             all_permutations.add(perm)
 
-    # Convert permutations to stacked integers
+    # Convert permutations to stacked integers connected with 0
     stacked_ints = set()
     for perm in all_permutations:
-        stacked_ints.add(int(''.join(map(str, perm))))
+        stacked_int = int('0'.join(map(str, perm)) + '0')
+        stacked_ints.add(stacked_int)
 
     return sorted(stacked_ints)
 
@@ -108,6 +110,7 @@ def main():
 	# Task parameters
 	# Note: kernel_type, length, precision, batch_size are potential task parameters 
 	length = Integer(1, 2, transform="normalize", name="length")
+	#length = Categoricalnorm([64, 128], transform="onehot", name="length")
 
 	# Input/tuning parameters
 
@@ -115,7 +118,7 @@ def main():
 	tpt = Integer(1, 4, transform="normalize", name="tpt")
 	half_lds = Categoricalnorm (['0', '1'], transform="onehot", name="half_lds")
 	direct_reg = Categoricalnorm (['0', '1'], transform="onehot", name="direct_reg")
-	factorization = Categorical(all_factorizations, name="factorization")
+	factorization = Categoricalnorm(all_factorizations, transform="onehot", name="factorization")
 
 	# Tuning Objective 
 	time   = Real(float("-Inf") , float("Inf"), name="time")
@@ -124,7 +127,7 @@ def main():
 	PS = Space([wgs, tpt, half_lds, direct_reg, factorization])
 	OS = Space([time])
 
-	# cst1 = " mb * bunit *p <= m "
+	# cst1 =
 	cst2 = "( tpt < wgs )"
 	cst3 = "( not half_lds or direct_reg )"
 	constraints = {" cst2 " : cst2, " cst3 " : cst3 } # constraints for task

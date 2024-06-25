@@ -74,21 +74,26 @@ declare -a tuning_para=($( jq -r --argjson v1 $idx '.func_eval[$v1].tuning_param
 
 
 # get the task input parameters, the parameters should follow the sequence of definition in the python file
-length=$(( input_para[0]  * 64 ))
+length=$(( input_para[0] * 64 ))
 
 # get the tuning parameters, the parameters should follow the sequence of definition in the python file
 wgs=$((tuning_para[0] * 64))
 tpt=$((tuning_para[1] * 64))
 half_lds=$((tuning_para[2]))
 direct_reg=$((tuning_para[3]))
+factorization_stacked=$((tuning_para[4]))
+
+# Replace all occurrences of 0 with whitespace
+factorization="${factorization_stacked//0/ }"
 
 # call the application
-export OMP_NUM_THREADS=$(($cores / $npernode))
+#export OMP_NUM_THREADS=$(($cores / $npernode))
+export GPTUNE_LITE_MODE=1
 
 RUN_BIN="./rocfft_config_search"
 
-echo "$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg 1 | tee rocfft_kernel.log"
-$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg 1 | tee rocfft_kernel.log
+echo "$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log"
+$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log
 
 # get the result (for this example: search the runlog)
 result=$(grep ', ' kernel.log | sed 's/.*, //')
