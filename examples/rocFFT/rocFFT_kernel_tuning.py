@@ -78,7 +78,7 @@ def factorize(n):
     # Convert permutations to stacked integers connected with 0
     stacked_ints = set()
     for perm in all_permutations:
-        stacked_int = int('0'.join(map(str, perm)) + '0')
+        stacked_int = ('0'.join(map(str, perm)) + '0')
         stacked_ints.add(stacked_int)
 
     return sorted(stacked_ints)
