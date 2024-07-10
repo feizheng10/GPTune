@@ -1,7 +1,7 @@
 //
-// dummy code to mock rocfft_config_search
+// dummy code to mock rocfft_kernel_config_search
 //
-//   -- build: g++ rocfft_kernel_config_search_dummy.cpp -o rocfft_config_search
+//   -- build: g++ rocfft_kernel_config_search_dummy.cpp -o rocfft_kernel_config_search
 //
 //
 //

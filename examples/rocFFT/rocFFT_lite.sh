@@ -90,13 +90,14 @@ factorization="${factorization_stacked//0/ }"
 #export OMP_NUM_THREADS=$(($cores / $npernode))
 export GPTUNE_LITE_MODE=1
 
-RUN_BIN="./rocfft_config_search"
+RUN_BIN="./rocfft_kernel_config_search"
 
 echo "$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log"
 $RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log
 
 # get the result (for this example: search the runlog)
-result=$(grep ', ' kernel.log | sed 's/.*, //')
+result=$(grep ', ' rocfft_kernel.log | sed 's/.*, //')
+
 
 # write the data back to the database file
 jq --arg v0 $obj --argjson v1 $idx --argjson v2 $result '.func_eval[$v1].evaluation_result[$v0]=$v2' $database > tmp.json && mv tmp.json $database

@@ -176,6 +176,7 @@ def main():
 
     options.validate(computer=computer)
 
+    # print("--------------------", options)
     giventask = [['64']]
     data = Data(problem)
 
