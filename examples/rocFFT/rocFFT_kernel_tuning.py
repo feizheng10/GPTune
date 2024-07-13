@@ -31,26 +31,21 @@ import math
 
 # not in use yet
 supported_factors = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 16, 17}
-
-
-# Function to generate the power set of a given iterable
-def power_set(iterable):
-    s = list(iterable)
-    return list(
-        chain.from_iterable(combinations(s, r) for r in range(len(s) + 1)))
-
+supported_wgs = {64, 128, 256}
 
 # Function to return the set of supported threads per transform
 def supported_threads_per_transform(factorization):
-    tpts = set()
-    tpt_candidates = power_set(factorization)
-    for tpt in tpt_candidates:
-        if not tpt:
-            continue
-        product = reduce(mul, tpt, 1)
-        tpts.add(product)
-    return tpts
+    # Function to generate the power set of a given iterable
+    def power_set(lst):
+        return chain.from_iterable(combinations(lst, r) for r in range(len(lst)+1))
 
+    tpts = set()
+    for factors in factorization:
+        for subset in power_set(factors):
+            if subset:
+                product = reduce(mul, subset, 1)
+                tpts.add(product)
+    return tpts
 
 # Generate all permutations of each factorization of n
 def factorize(n):
@@ -83,7 +78,7 @@ def factorize(n):
         stacked_int = ('0'.join(map(str, perm)) + '0')
         stacked_ints.add(stacked_int)
 
-    return sorted(stacked_ints)
+    return all_permutations, sorted(stacked_ints)
 
 
 ################################################################################
@@ -109,8 +104,9 @@ def main():
 
     nprocmax = nodes * cores
 
-    all_factorizations = factorize(64)
-    #print("---------------------", all_factorizations)
+    factorizations, encoding_factorizations = factorize(64)
+
+    tpt_list = supported_threads_per_transform(factorizations)
 
     # Task parameters
     # Note: kernel_type, length, precision, batch_size are potential task parameters
@@ -118,13 +114,14 @@ def main():
 
     # Input/tuning parameters
 
-    wgs = Integer(1, 4, transform="normalize", name="wgs")
-    tpt = Integer(1, 4, transform="normalize", name="tpt")
+    # wgs = Integer(1, 4, transform="normalize", name="wgs")
+    wgs = Categoricalnorm([str(n) for n in supported_wgs], transform="onehot", name="wgs")
+    tpt = Categoricalnorm([str(n) for n in tpt_list], transform="onehot", name="tpt")
     half_lds = Categoricalnorm(['0', '1'], transform="onehot", name="half_lds")
-    direct_reg = Categoricalnorm(['0', '1'],
+    direct_reg = Categoricalnorm(['1'], #Fixme
                                  transform="onehot",
                                  name="direct_reg")
-    factorization = Categoricalnorm(all_factorizations,
+    factorization = Categoricalnorm(encoding_factorizations,
                                     transform="onehot",
                                     name="factorization")
 
@@ -203,9 +200,9 @@ def main():
         for tid in range(NI):
             print("tid: %d" % (tid))
             print("    Transform sizes:%s" % (data.I[tid][0]))
-            print("    Ps ", data.P[tid])
-            print("    Os ", data.O[tid].tolist())
-            print('    Popt ', data.P[tid][np.argmin(data.O[tid])], 'Oopt ',
+            print("    Ps", data.P[tid])
+            print("    Os", data.O[tid].tolist())
+            print('    Popt', data.P[tid][np.argmin(data.O[tid])], 'Oopt',
                   min(data.O[tid])[0], 'nth ', np.argmin(data.O[tid]))
 
 

@@ -77,8 +77,8 @@ declare -a tuning_para=($( jq -r --argjson v1 $idx '.func_eval[$v1].tuning_param
 length=$(( input_para[0]))
 
 # get the tuning parameters, the parameters should follow the sequence of definition in the python file
-wgs=$((tuning_para[0] * 64))
-tpt=$((tuning_para[1] * 64))
+wgs=$((tuning_para[0]))
+tpt=$((tuning_para[1]))
 half_lds=$((tuning_para[2]))
 direct_reg=$((tuning_para[3]))
 factorization_stacked=$((tuning_para[4]))
@@ -90,14 +90,15 @@ factorization="${factorization_stacked//0/ }"
 #export OMP_NUM_THREADS=$(($cores / $npernode))
 export GPTUNE_LITE_MODE=1
 
-RUN_BIN="./rocfft_kernel_config_search"
+RUN_BIN="rocfft_kernel_config_search"
 
-echo "$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log"
-$RUN_BIN manual -l $length -b 1 -f 8 8 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log
+echo "$RUN_BIN manual -l $length -b 1 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log"
+$RUN_BIN manual -l $length -b 1 -w $wgs --tpt $tpt --half-lds $half_lds --direct-reg $direct_reg -f $factorization | tee rocfft_kernel.log
 
 # get the result (for this example: search the runlog)
 result=$(grep ', ' rocfft_kernel.log | sed 's/.*, //')
 
+echo "result $result"
 
 # write the data back to the database file
 jq --arg v0 $obj --argjson v1 $idx --argjson v2 $result '.func_eval[$v1].evaluation_result[$v0]=$v2' $database > tmp.json && mv tmp.json $database
@@ -116,5 +117,5 @@ done
 end=`date +%s`
 
 runtime=$((end-start))
-echo "Total tuning time: $runtime"
+echo "Total tuning time: $runtime s"
 
