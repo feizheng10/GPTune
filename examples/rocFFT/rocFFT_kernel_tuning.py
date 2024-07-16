@@ -113,12 +113,10 @@ def main():
     length = Categoricalnorm(['64', '128'], transform="onehot", name="length")
 
     # Input/tuning parameters
-
-    # wgs = Integer(1, 4, transform="normalize", name="wgs")
     wgs = Categoricalnorm([str(n) for n in supported_wgs], transform="onehot", name="wgs")
     tpt = Categoricalnorm([str(n) for n in tpt_list], transform="onehot", name="tpt")
     half_lds = Categoricalnorm(['0', '1'], transform="onehot", name="half_lds")
-    direct_reg = Categoricalnorm(['1'], #Fixme
+    direct_reg = Categoricalnorm(['0', '1'],
                                  transform="onehot",
                                  name="direct_reg")
     factorization = Categoricalnorm(encoding_factorizations,
@@ -135,7 +133,7 @@ def main():
     # Constraints for task
     # cst1 =
     cst2 = "( tpt < wgs )"
-    cst3 = "( not half_lds or direct_reg )"
+    cst3 = "( not int(half_lds) or int(direct_reg) )"
     constraints = {" cst2 ": cst2, " cst3 ": cst3}
 
     models = {}
